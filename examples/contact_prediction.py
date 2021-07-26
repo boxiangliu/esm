@@ -58,7 +58,8 @@ def read_msa(filename: str, nseq: int) -> List[Tuple[str, str]]:
 
 
 esm1b, esm1b_alphabet = esm.pretrained.esm1b_t33_650M_UR50S()
-esm1b = esm1b.eval().cuda()
+# esm1b = esm1b.eval().cuda()
+esm1b = esm1b.eval()
 esm1b_batch_converter = esm1b_alphabet.get_batch_converter()
 
 
@@ -76,7 +77,7 @@ esm1b_data = [
 
 
 esm1b_batch_labels, esm1b_batch_strs, esm1b_batch_tokens = esm1b_batch_converter(esm1b_data)
-esm1b_batch_tokens = esm1b_batch_tokens.cuda()
+# esm1b_batch_tokens = esm1b_batch_tokens.cuda()
 print(esm1b_batch_tokens.size(), esm1b_batch_tokens.dtype)  # Should be a 2D tensor with dtype torch.int64.
 
 
@@ -94,7 +95,7 @@ for ax, contact, sequence in zip(axes, esm1b_contacts, esm1b_batch_strs):
     seqlen = len(sequence)
     ax.imshow(contact[:seqlen, :seqlen], cmap="Blues")
 plt.show()
-
+plt.savefig("test.pdf")
 
 # ## Run MSA Transformer Contact Prediction
 
@@ -102,7 +103,8 @@ plt.show()
 
 
 msa_transformer, msa_alphabet = esm.pretrained.esm_msa1_t12_100M_UR50S()
-msa_transformer = msa_transformer.eval().cuda()
+# msa_transformer = msa_transformer.eval().cuda()
+msa_transformer = msa_transformer.eval()
 msa_batch_converter = msa_alphabet.get_batch_converter()
 
 
@@ -114,8 +116,9 @@ msa_data = [
     read_msa("5ahw_1_A.a3m", 64),
     read_msa("1xcr_1_A.a3m", 64),
 ]
+
 msa_batch_labels, msa_batch_strs, msa_batch_tokens = msa_batch_converter(msa_data)
-msa_batch_tokens = msa_batch_tokens.cuda()
+# msa_batch_tokens = msa_batch_tokens.cuda()
 print(msa_batch_tokens.size(), msa_batch_tokens.dtype)  # Should be a 3D tensor with dtype torch.int64.
 
 
@@ -123,7 +126,6 @@ print(msa_batch_tokens.size(), msa_batch_tokens.dtype)  # Should be a 3D tensor 
 
 
 get_ipython().run_cell_magic('time', '', 'msa_contacts = msa_transformer.predict_contacts(msa_batch_tokens).cpu()')
-
 
 # In[74]:
 
@@ -133,4 +135,6 @@ for ax, contact, msa in zip(axes, msa_contacts, msa_batch_strs):
     seqlen = len(msa[0])
     ax.imshow(contact[:seqlen, :seqlen], cmap="Blues")
 plt.show()
+plt.savefig("msa_transformer.pdf")
 
+hidden = msa_transformer.forward(msa_batch_tokens, need_head_weights=True, return_contacts=True)

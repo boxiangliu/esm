@@ -317,6 +317,7 @@ class ContactPredictionHead(nn.Module):
 
     def forward(self, tokens, attentions):
         # remove eos token attentions
+        breakpoint()
         if self.append_eos:
             eos_mask = tokens.ne(self.eos_idx).to(attentions)
             eos_mask = eos_mask.unsqueeze(1) * eos_mask.unsqueeze(2)
